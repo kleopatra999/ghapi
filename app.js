@@ -21,6 +21,8 @@ var projectsList = [
 
 var projectsData = {};
 
+
+
 function fetchProjectData(projectName) {
 
     projectsData[projectName] = {};
@@ -141,6 +143,15 @@ app.use(function(req, res, next) {
 
 app.get('/projects', function(req,res) {
     res.json(projectsData);
+});
+
+app.get('/api/*', function(req, res) {
+    if(req.url) {
+        console.log(req.url);
+        client.get(req.url.split('api')[1], {}, function(err, status, body, headers) {
+            res.json(body);
+        });
+    }
 });
 
 http.listen(3000, function() {
