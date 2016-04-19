@@ -2,12 +2,12 @@ var express = require("express"),
     app = express(),
     request = require('superagent'),
     github = require('octonode'),
+    fs = require('fs'),
     http = require('http').Server(app);
 
-var client = github.client({
-    username: 'username',
-    password: 'password'
-});
+var ghAuthBot = JSON.parse(fs.readFileSync('conf.json', 'utf8'));
+
+var client = github.client(ghAuthBot.token);
 
 var projectsList = [
     'developers',
