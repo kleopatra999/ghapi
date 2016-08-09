@@ -27,9 +27,9 @@
     "url": "https://github.com/w3c/ghapi/issues"
   },
   "dependencies": {
-    "express": "4.13.4",
-    "octonode": "0.7.5",
-    "superagent": "1.8.3"
+    "express": "4.14.0",
+    "octonode": "0.7.6",
+    "superagent": "2.1.0"
   },
   "scripts": {
     "start": "node app"
