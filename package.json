@@ -32,7 +32,7 @@
     "superagent": "2.1.0"
   },
   "scripts": {
-    "start": "node app"
+    "start": "node --use_strict --throw-deprecation app"
   },
   "engines": {
     "node": "4.4.x",
