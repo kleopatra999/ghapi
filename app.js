@@ -25,6 +25,8 @@ var projectsData = {};
 
 function fetchProjectData(projectName) {
 
+    const repo = client.repo(`w3c/${projectName}`);
+
     projectsData[projectName] = {};
     console.log(projectName + ': fetching data...');
 
@@ -116,19 +118,11 @@ function fetchProjectData(projectName) {
     });
 
     // get last release
-    client.get('/repos/w3c/' + projectName + '/releases', {}, function (err, status, body, headers) {
-        if(err) {
-            console.log(err);
-        } else {
-            try {
-                projectsData[projectName]["last_release"] = body[0]["tag_name"];
-                console.log('last release: ' + body[0]["tag_name"]);
-            } catch (e) {
-                console.log(e);
-                projectsData[projectName]["last_release"] = "";
-                console.log('last release: ' + '');
-            }
-        }
+    repo.releases((err, data, headers) => {
+        if(err)
+            return console.log(err);
+        projectsData[projectName]['last_release'] = (data && data.length > 0) ? data[0]['tag_name'] : '';
+        console.log(`last release: ${projectsData[projectName]['last_release']}`);
     });
 
 }
