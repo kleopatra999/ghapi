@@ -1,3 +1,7 @@
 {
-    "token": "token"
+    "port": 3000,
+    "pageSize": 100,
+    "organisation": <ID of a GH organisation, eg "w3c">,
+    "refreshPeriod": <period of time in minutes, eg 120>,
+    "token": <Valid GH API token; see https://github.com/settings/tokens/new >
 }
