@@ -25,6 +25,8 @@ var projectsData = {};
 
 function fetchProjectData(projectName) {
 
+    const repo = client.repo(`w3c/${projectName}`);
+
     projectsData[projectName] = {};
     console.log(projectName + ': fetching data...');
 
@@ -60,17 +62,14 @@ function fetchProjectData(projectName) {
     });
 
     // get last commit
-    client.get('/repos/w3c/' + projectName + '/commits', {}, function (err, status, body, headers) {
-        if(err) {
-            console.log(err);
-        } else {
-            try {
-                projectsData[projectName]["last_commit_on"] = body[0]["commit"]["author"]["date"];
-                console.log('last commit on: ' + body[0]["commit"]["author"]["date"]);
-            } catch (e) {
-                console.log(e);
-            }
-        }
+    repo.commits((err, data, headers) => {
+        if(err)
+            return console.log(err);
+        if (data && data.length > 0 && data[0].commit && data[0].commit.author && data[0].commit.author.date)
+            projectsData[projectName]['last_commit_on'] = data[0].commit.author.date;
+        else
+            projectsData[projectName]['last_commit_on'] = '';
+        console.log(`last commit on: ${projectsData[projectName]['last_commit_on']}`);
     });
 
     // get number of issues
