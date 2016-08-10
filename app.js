@@ -1,27 +1,32 @@
-var express = require("express"),
-    app = express(),
-    request = require('superagent'),
-    github = require('octonode'),
-    fs = require('fs'),
-    http = require('http').Server(app);
+/**
+ * Main runnable file.
+ */
 
-var ghAuthBot = JSON.parse(fs.readFileSync('conf.json', 'utf8'));
+'use strict';
 
-var client = github.client(ghAuthBot.token);
+// Native packages:
+const http = require('http');
 
-var projectsList = [
-    'developers',
-    'mailing-list-archives',
-    'Unitas',
-    'wbs-design',
-    'design',
-    'tr-design',
-    'node-w3capi'
-];
+// External packages:
+const express = require('express'),
+    octonode = require('octonode');
 
-var projectsData = {};
+// Settings:
+const conf = require('./conf');
 
-
+const app = express(),
+    server = http.createServer(app),
+    client = octonode.client(conf.token),
+    projectsData = {},
+    projectsList = [
+        'design',
+        'developers',
+        'mailing-list-archives',
+        'node-w3capi',
+        'tr-design',
+        'Unitas',
+        'wbs-design'
+    ];
 
 function fetchProjectData(projectName) {
 
@@ -153,7 +158,7 @@ app.get('/api/*', function(req, res) {
     }
 });
 
-http.listen(3000, function() {
+server.listen(3000, function() {
     console.log('listening on *:3000');
     setInterval(function() {
         projectsList.map(fetchProjectData);
