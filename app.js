@@ -9,29 +9,79 @@ const http = require('http');
 
 // External packages:
 const express = require('express'),
-    octonode = require('octonode');
+    octonode = require('octonode'),
+    CLIProgressBar = require('cli-progress-bar');
 
 // Settings:
-const conf = require('./conf');
+const pageSize = 100,
+    conf = require('./conf');
 
 const app = express(),
     server = http.createServer(app),
     client = octonode.client(conf.token),
-    projectsData = {},
-    projectsList = [
-        'design',
-        'developers',
-        'mailing-list-archives',
-        'node-w3capi',
-        'tr-design',
-        'Unitas',
-        'wbs-design'
-    ];
+    w3c = client.org('w3c'),
+    projectsList = [],
+    projectsData = {};
+
+var projectsDone = 0,
+    progressBar;
+
+/**
+ * Retrieve list of all W3C projects (or a page of them).
+ *
+ * Side-effect: mutates <code>projectsList</code>.
+ *
+ * @param {Function} cb - callback (expects no parameters).
+ */
+
+function fetchListOfProjects(cb, pageNo=1) {
+
+    w3c.repos(pageNo, pageSize, (err, data, headers) => {
+
+        if (1 === pageNo) {
+            progressBar = new CLIProgressBar();
+            progressBar.show('Retrieving list of all public repos');
+        }
+        progressBar.pulse(`page ${pageNo}`);
+        if (err) {
+            console.log(err);
+            progressBar.hide();
+            cb();
+        } else
+            if (!data || data.length < 1) {
+                progressBar.hide();
+                cb();
+            } else {
+                projectsList.push(...data.map((x) => { return x.name; }));
+                fetchListOfProjects(cb, pageNo + 1);
+            }
+
+    });
+
+}
+
+/**
+ * Retrieve selected metadata for all projects.
+ *
+ * Side-effect: mutates <code>projectsData</code>.
+ *
+ * @param {String} projectName - name of the repository.
+ */
 
 function fetchProjectData(projectName) {
 
+    const expected = 6;
+    var done = 0;
     projectsData[projectName] = {};
-    console.log(projectName + ': fetching data...');
+
+    function updateProgress() {
+        if (++done === expected) {
+            if (++projectsDone === projectsList.length)
+                progressBar.hide();
+            else
+                progressBar.show(projectName, projectsDone / projectsList.length);
+        }
+    }
 
     // get and store
     //   creation date
@@ -45,23 +95,21 @@ function fetchProjectData(projectName) {
         } else {
             try {
                 projectsData[projectName]["created_on"] = body["created_at"];
-                console.log('created on: ' + body["created_at"]);
             } catch (e) {
                 console.log(e);
             }
             try {
                 projectsData[projectName]["description"] = body["description"];
-                console.log('description: ' + body["description"]);
             } catch (e) {
                 console.log(e);
             }
             try {
                 projectsData[projectName]['website_url'] = body['homepage'];
-                console.log('website_url: ' + body['homepage']);
             } catch (e) {
                 console.log(e);
             }
         }
+        updateProgress();
     });
 
     // get last commit
@@ -71,11 +119,11 @@ function fetchProjectData(projectName) {
         } else {
             try {
                 projectsData[projectName]["last_commit_on"] = body[0]["commit"]["author"]["date"];
-                console.log('last commit on: ' + body[0]["commit"]["author"]["date"]);
             } catch (e) {
                 console.log(e);
             }
         }
+        updateProgress();
     });
 
     // get number of issues
@@ -85,11 +133,11 @@ function fetchProjectData(projectName) {
         } else {
             try {
                 projectsData[projectName]["opened_issues"] = body.length;
-                console.log('number of issues: ' + body.length);
             } catch (e) {
                 console.log(e);
             }
         }
+        updateProgress();
     });
 
     // get number of contributors
@@ -99,11 +147,11 @@ function fetchProjectData(projectName) {
         } else {
             try {
                 projectsData[projectName]["contributors"] = body.length;
-                console.log('number of contributors: ' + body.length);
             } catch (e) {
                 console.log(e);
             }
         }
+        updateProgress();
     });
 
     // get number of pending pull requests
@@ -113,11 +161,11 @@ function fetchProjectData(projectName) {
         } else {
             try {
                 projectsData[projectName]["pending_pull_requests"] = body.length;
-                console.log('number of pull requests: ' + body.length);
             } catch (e) {
                 console.log(e);
             }
         }
+        updateProgress();
     });
 
     // get last release
@@ -127,18 +175,29 @@ function fetchProjectData(projectName) {
         } else {
             try {
                 projectsData[projectName]["last_release"] = body[0]["tag_name"];
-                console.log('last release: ' + body[0]["tag_name"]);
             } catch (e) {
                 console.log(e);
                 projectsData[projectName]["last_release"] = "";
-                console.log('last release: ' + '');
             }
         }
+        updateProgress();
     });
 
 }
 
-projectsList.map(fetchProjectData);
+fetchListOfProjects(() => {
+    projectsList.sort((a, b) => {
+        if (a.toLowerCase() < b.toLowerCase())
+            return -1;
+        else if (a.toLowerCase() > b.toLowerCase())
+            return +1;
+        else
+            return 0;
+    });
+    console.log(`${projectsList.length} public projects:\n${projectsList.join(', ')}`);
+    progressBar = new CLIProgressBar();
+    projectsList.map(fetchProjectData);
+});
 
 app.use(function(req, res, next) {
   res.header("Access-Control-Allow-Origin", "*");

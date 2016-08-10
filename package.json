@@ -30,7 +30,8 @@
   },
   "dependencies": {
     "express": "4.14.0",
-    "octonode": "0.7.6"
+    "octonode": "0.7.6",
+    "cli-progress-bar": "1.0.0"
   },
   "scripts": {
     "start": "node --use_strict --throw-deprecation app"
