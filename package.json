@@ -1,6 +1,6 @@
 {
   "name": "ghapi",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Proxy to use the github api auth and store data about our repositories",
   "author": "W3C",
   "contributors": [
@@ -19,6 +19,8 @@
     "api"
   ],
   "license": "MIT",
+  "private": true,
+  "main": "app",
   "repository": {
     "type": "git",
     "url": "https://github.com/w3c/ghapi"
@@ -28,14 +30,13 @@
   },
   "dependencies": {
     "express": "4.14.0",
-    "octonode": "0.7.6",
-    "superagent": "2.1.0"
+    "octonode": "0.7.6"
   },
   "scripts": {
     "start": "node --use_strict --throw-deprecation app"
   },
   "engines": {
-    "node": "4.4.x",
-    "npm": "3.8.x"
+    "node": "6.2.x",
+    "npm": "3.10.x"
   }
 }
